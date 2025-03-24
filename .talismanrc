@@ -1,0 +1,12 @@
+fileignoreconfig:
+- filename: package-lock.json
+  checksum: 84ed22ffcb3bdbe07701d2dc7e03f3ef69b8e1808d42b301d2ac47989e24251f
+- filename: src/components/Payslip.js
+  checksum: e6ec3006fdfc9ce5d6853f124a01c5cf5a8f8403448a95fcc36b5d514cc0e870
+- filename: src/pages/ModifyRate.js
+  checksum: e6abcec4f5ccc5f2e607b67e8fc7767ee25dba45b8119001117b9f739ba3bc80
+- filename: src/components/AddWorkers.js
+  checksum: 7732cb33c96caf07c1a971b4efe2583602c23d91fb3b1d15518743537ee56080
+- filename: src/pages/JobCardPage.js
+  checksum: e8a89958648d4599c367109a2110ebc72c213db9a86e9318b538bbb8543391aa
+version: ""

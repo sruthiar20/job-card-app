@@ -1,0 +1,51 @@
+.app {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.app-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+}
+
+main {
+  margin: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+  width: 300px;
+  margin: 10px auto;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+select,
+input {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.result {
+  margin-top: 20px;
+  font-size: 20px;
+  font-weight: bold;
+}

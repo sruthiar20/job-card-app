@@ -1,0 +1,90 @@
+.homepage-container {
+    display: flex;
+    height: 100vh;
+    font-family: Georgia, sans-serif;
+    justify-content: space-between;
+    background-image: url('bg2.jpg');
+    background-repeat: no-repeat; /* Prevents the image from repeating */
+    background-size: cover; /* Ensures the image covers the entire container */
+    background-position: center; /* Centers the image */
+}
+
+.menu-panel {
+    width: 200px;
+    background-color: whitesmoke;
+    color: black;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-shadow: 10px 0px 11px rgba(1, 0, 0, 0.1);
+}
+
+.menu-panel ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-panel li {
+    padding: 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #2c3e50;
+    transition: background-color 0.3s ease;
+    font-size: 20px;
+}
+
+.menu-panel li:hover {
+    background-color: whitesmoke;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+}
+
+.homepage-header {
+    background-position: center;
+    padding: 20px;
+    text-align: center;
+    color: black;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 30px;
+    background-color: silver;
+}
+
+.header-text {
+    margin-top: 20px;
+}
+
+.header-text h1 {
+    font-size: 30px;
+    margin: 10px 0;
+}
+
+.header-text p {
+    font-size: 25px;
+    font-style: italic;
+}
+
+
+.action-button {
+    padding: 15px 30px;
+    font-size: 16px;
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.action-button:hover {
+    background-color: #184a57;
+}

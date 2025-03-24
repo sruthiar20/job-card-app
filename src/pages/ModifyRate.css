@@ -1,0 +1,55 @@
+.modify-rate-container h2 {
+    margin-bottom: 20px; /* Adds space below the heading */
+}
+
+.filter-container {
+    display: flex;
+    align-items: center; /* Align label and dropdown in a row */
+    gap: 12px; /* Adds space between label and dropdown */
+    margin-bottom: 20px; /* Space below the filter section */
+}
+
+.filter-container label {
+    font-weight: bold;
+    white-space: nowrap; /* Prevents label from breaking into multiple lines */
+}
+
+.filter-container select {
+    flex-grow: 1; /* Makes the dropdown take available space */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.rate-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.rate-table th, .rate-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.submit-button, .proceed-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.popup {
+    background-color: white;
+    border: 2px solid #4CAF50;
+    padding: 20px;
+    position: fixed;
+    top: 30%;
+    left: 30%;
+    width: 40%;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

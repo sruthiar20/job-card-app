@@ -1,0 +1,16 @@
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px 10px;
+    background-color: #34495e;
+}
+
+.header-image {
+    width: 100px;
+    height: 150px;
+    padding: 10px;
+    object-fit: cover;
+    position: absolute;
+    margin-right: 15px;
+}
