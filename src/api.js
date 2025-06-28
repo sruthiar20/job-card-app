@@ -26,8 +26,15 @@ export const fetchSchools = async () => {
         return response.data;
 };
 
-export const fetchBills = async (workerId) => {
-    const response = await axios.get(`${API_BASE_URL}/bills/${workerId}`);
+
+export const fetchFilteredBills = async ({ workerName, departmentName, startDate, endDate }) => {
+    const params = {};
+    if (workerName) params.workerName = workerName;
+    if (departmentName) params.departmentName = departmentName;
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+
+    const response = await axios.get(`${API_BASE_URL}/bills/job-cards`, { params });
     return response.data;
 };
 

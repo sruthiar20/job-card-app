@@ -8,6 +8,7 @@ import './styles.css';
 import AddStyles from "./components/AddStyles";
 import AddWorkers from "./components/AddWorkers";
 import ModifyRate from "./pages/ModifyRate";
+import ShowBillsPage from "./pages/ShowBillsPage";
 
 const App = () => (
     <Router>
@@ -19,6 +20,7 @@ const App = () => (
         <Route path="/payslip" element={<PayslipPage />} />
         <Route path="/add-styles" element={<AddStyles />} />
         <Route path="/workers" element={<AddWorkers />} />
+        <Route path="/bills" element={<ShowBillsPage />} />
 
 
       </Routes>
