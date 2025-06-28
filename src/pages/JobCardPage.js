@@ -14,6 +14,13 @@ const JobCardPage = () => {
     const [styleEntries, setStyleEntries] = useState([{ pattern: '', styleId: '', quantity: 0, schoolId: '' }]);
     const navigate = useNavigate();
 
+    const [startTime, setStartTime] = useState('');
+    const [startMeridian, setStartMeridian] = useState('AM');
+    const [endTime, setEndTime] = useState('');
+    const [endMeridian, setEndMeridian] = useState('PM');
+    const [totalHours, setTotalHours] = useState(0);
+    const [shiftRate, setShiftRate] = useState(0);
+
     useEffect(() => {
         const fetchInitialData = async () => {
             setDepartments(await fetchDepartments());
@@ -24,24 +31,82 @@ const JobCardPage = () => {
 
         fetchInitialData();
     }, []);
+    useEffect(() => {
+        if (selectedDepartment === 'Shift') {
+            calculateShiftRate();
+        }
+    }, [startTime, startMeridian, endTime, endMeridian, selectedDepartment]);
+
 
     const handleDepartmentChange = async (department) => {
         setSelectedDepartment(department);
         setNames(await fetchNamesByDepartment(department));
     };
 
+    const calculateShiftRate = () => {
+        if (!startTime || !endTime) return;
+
+        const parseTimeToDecimal = (timeStr) => {
+            const [hourStr, minuteStr] = timeStr.split(':');
+            const hour = parseInt(hourStr, 10);
+            const minute = parseInt(minuteStr, 10);
+            return hour + minute / 60;
+        };
+
+        const start = parseTimeToDecimal(startTime);
+        const end = parseTimeToDecimal(endTime);
+
+        let hours = end - start;
+        if (hours < 0) hours += 24; // overnight shift
+
+        const ratePerShift = 300;
+        const rate = (hours / 8) * ratePerShift;
+
+        setTotalHours(hours.toFixed(2));
+        setShiftRate(rate.toFixed(2));
+    };
+
+
+
     const handleSubmit = async () => {
         const worker = workers.find(worker => worker.name === selectedName);
         const workerId = worker ? worker.workerId : '';
 
-        const jobCardData = styleEntries.map(style => ({
-            workerId,
-            styleId: style.styleId,
-            department: selectedDepartment,
-            schoolId: style.schoolId,
-            quantity: Number(style.quantity),
-            standard: style.standard
-        }));
+        const jobCardData = styleEntries.map(style => {
+            const entry = {
+                workerId,
+                styleId: style.styleId,
+                department: selectedDepartment,
+                schoolId: style.schoolId,
+                quantity: Number(style.quantity),
+                standard: style.standard
+            };
+
+            if (selectedDepartment === 'Shift') {
+                const to24Hour = (time, meridian) => {
+                    let [hour, min] = time.split(':').map(Number);
+                    if (meridian === 'PM' && hour !== 12) hour += 12;
+                    if (meridian === 'AM' && hour === 12) hour = 0;
+                    return hour + min / 60;
+                };
+
+                const start = to24Hour(startTime, startMeridian);
+                const end = to24Hour(endTime, endMeridian);
+                let hours = end - start;
+                if (hours < 0) hours += 24;
+
+                const ratePerShift = 300;
+                const rate = (hours / 8) * ratePerShift;
+
+                entry.startTime = startTime;
+                entry.endTime = endTime;
+
+                entry.rate = rate;
+                entry.total = rate;
+            }
+
+            return entry;
+        });
 
         try {
             const payslip = await submitJobCard(jobCardData);
@@ -68,6 +133,7 @@ const JobCardPage = () => {
         }
     };
 
+
     return (
         <div className="job-card-container">
             <h2>Enter Job Card Details of an Employee</h2>
@@ -92,8 +158,41 @@ const JobCardPage = () => {
                     </select>
                 </div>
             </div>
+            {selectedDepartment === 'Shift' && (
+                <div className="shift-time-row">
+                    <div className="input-container">
+                        <label>Start Time</label>
+                        <input
+                            type="time"
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                        />
+                    </div>
 
-            {styleEntries.map((entry, index) => (
+                    <div className="input-container">
+                        <label>End Time</label>
+                        <input
+                            type="time"
+                            value={endTime}
+                            onChange={(e) => setEndTime(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="input-container">
+                        <label>Total Hours</label>
+                        <input type="text" value={`${totalHours} hrs`} disabled />
+                    </div>
+
+                    <div className="input-container">
+                        <label>Calculated Rate</label>
+                        <input type="text" value={`₹${shiftRate}`} disabled />
+                    </div>
+                </div>
+            )}
+
+
+
+            {selectedDepartment !== 'Shift'&& styleEntries.map((entry, index) => (
                 <div key={index} className="style-entry-row">
                     <div className="input-container">
                         <label htmlFor={`pattern-${index}`}>Select Pattern</label>
@@ -196,12 +295,17 @@ const JobCardPage = () => {
 
             <div className="button-container">
                 <button className="back-button" onClick={() => navigate('/')}>Back</button>
-                <button
-                    className="add-style-button"
-                    onClick={() => setStyleEntries([...styleEntries, {pattern: '', styleId: '', quantity: ''}])}
-                >
-                    + Add Style
-                </button>
+                {selectedDepartment !== 'Shift' && (
+                    <button
+                        className="add-style-button"
+                        onClick={() =>
+                            setStyleEntries([...styleEntries, { pattern: '', styleId: '', quantity: '' }])
+                        }
+                    >
+                        + Add Style
+                    </button>
+                )}
+
 
                 <button className="generate-slip-button" onClick={handleSubmit}>
                     Generate Payslip
