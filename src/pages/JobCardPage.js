@@ -25,6 +25,7 @@ const JobCardPage = () => {
     const [detectedAdvance, setDetectedAdvance] = useState(0);
     const [advanceBalance, setAdvanceBalance] = useState(0);
     const [finalPay, setFinalPay] = useState(0);
+    const [submitting, setSubmitting] = useState(false);
 
 
     useEffect(() => {
@@ -78,64 +79,72 @@ const JobCardPage = () => {
         const worker = workers.find(worker => worker.name === selectedName);
         const workerId = worker ? worker.workerId : '';
 
-        let totalHours = 0;
-        let shiftRate = 0;
+        let jobCardData = [];
 
-        const jobCardData = styleEntries.map(style => {
-            const entry = {
-                workerId,
-                styleId: style.styleId,
-                department: selectedDepartment,
-                schoolId: style.schoolId,
-                quantity: Number(style.quantity),
-                standard: style.standard
+        if (selectedDepartment === 'Shift') {
+            const to24Hour = (time, meridian) => {
+                let [hour, min] = time.split(':').map(Number);
+                if (meridian === 'PM' && hour !== 12) hour += 12;
+                if (meridian === 'AM' && hour === 12) hour = 0;
+                return hour + min / 60;
             };
 
-            if (selectedDepartment === 'Shift') {
-                const to24Hour = (time, meridian) => {
-                    let [hour, min] = time.split(':').map(Number);
-                    if (meridian === 'PM' && hour !== 12) hour += 12;
-                    if (meridian === 'AM' && hour === 12) hour = 0;
-                    return hour + min / 60;
-                };
+            const start = to24Hour(startTime, startMeridian);
+            const end = to24Hour(endTime, endMeridian);
+            let hours = end - start;
+            if (hours < 0) hours += 24;
 
-                const start = to24Hour(startTime, startMeridian);
-                const end = to24Hour(endTime, endMeridian);
-                let hours = end - start;
-                if (hours < 0) hours += 24;
+            const ratePerShift = 300;
+            const rate = (hours / 8) * ratePerShift;
 
-                const ratePerShift = 300;
-                const rate = (hours / 8) * ratePerShift;
-
-                entry.startTime = startTime;
-                entry.endTime = endTime;
-                entry.totalHours = Number(totalHours);
-                entry.rate = Number(shiftRate);
-                entry.total = Number(shiftRate);
-            }
-
-            return entry;
-        });
-
-        try {
-            const payslip = await submitJobCard(jobCardData);
-            const netPay = payslip.reduce((total, card) => total + card.total, 0);
+            const total = rate;
 
             const adv = Number(advance);
-            const det = Number(detectedAdvance);
+            const det = Math.min(adv, total);
             const bal = Math.max(0, adv - det);
-            const final = netPay - det;
+            const final = total - det;
 
-
-            const enrichedJobCardData = jobCardData.map(entry => ({
-                ...entry,
+            jobCardData = [{
+                workerId,
+                department: selectedDepartment,
+                startTime,
+                endTime,
+                rate,
+                total,
                 advance: adv,
                 detectedAdvance: det,
                 advanceBalance: bal,
                 finalPay: final
-            }));
+            }];
+        } else {
+            jobCardData = styleEntries.map(style => {
+                const adv = Number(advance);
+                const rate = 0; // will be set in backend
+                const total = 0; // will be set in backend
 
-            await submitJobCard(enrichedJobCardData);
+                const entryTotal = rate * style.quantity;
+                const det = Math.min(adv, entryTotal);
+                const bal = Math.max(0, adv - det);
+                const final = entryTotal - det;
+
+                return {
+                    workerId,
+                    styleId: style.styleId,
+                    department: selectedDepartment,
+                    schoolId: style.schoolId,
+                    quantity: Number(style.quantity),
+                    standard: style.standard,
+                    advance: adv,
+                    detectedAdvance: det,
+                    advanceBalance: bal,
+                    finalPay: final
+                };
+            });
+        }
+
+        try {
+            const payslip = await submitJobCard(jobCardData);
+            const netPay = payslip.reduce((total, card) => total + card.total, 0);
 
             const formattedPayslip = {
                 workerName: payslip[0].workerName,
@@ -150,10 +159,10 @@ const JobCardPage = () => {
                     rate: card.rate
                 })),
                 netPay,
-                advance: adv,
-                detectedAdvance: det,
-                advanceBalance: bal,
-                finalPay: final
+                advance: payslip[0].advance,
+                detectedAdvance: payslip[0].detectedAdvance,
+                advanceBalance: payslip[0].advanceBalance,
+                finalPay: payslip[0].finalPay
             };
 
             navigate('/payslip', { state: { payslip: formattedPayslip } });
@@ -161,6 +170,7 @@ const JobCardPage = () => {
             console.error('Error submitting job card:', error);
         }
     };
+
 
 
 
