@@ -8,9 +8,8 @@ const AddWorkers = () => {
         department: "",
     });
 
-    const [departments, setDepartments] = useState([]); // Stores department names
+    const [departments, setDepartments] = useState([]);
 
-    // Fetch departments from styles
     useEffect(() => {
         const fetchDepartments = async () => {
             try {
@@ -67,7 +66,7 @@ const AddWorkers = () => {
                     workerId: "",
                     name: "",
                     department: "",
-                }); // Reset form
+                });
             } else {
                 alert("Error adding employee!");
             }

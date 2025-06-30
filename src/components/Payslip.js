@@ -58,10 +58,27 @@ const Payslip = ({ styles, netPay, payslip, employerName }) => {
                 <tbody>
                 <tr>
                     <td><strong>Net Pay:</strong></td>
-                    <td>{netPay}</td>
+                    <td>₹{netPay}</td>
+                </tr>
+                <tr>
+                    <td><strong>Advance Entered:</strong></td>
+                    <td>₹{payslip.advance || 0}</td>
+                </tr>
+                <tr>
+                    <td><strong>Detected Advance:</strong></td>
+                    <td>₹{payslip.detectedAdvance || 0}</td>
+                </tr>
+                <tr>
+                    <td><strong>Available Advance Balance:</strong></td>
+                    <td>₹{payslip.advanceBalance || 0}</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Amount to be Paid:</strong></td>
+                    <td>₹{payslip.finalPay || netPay}</td>
                 </tr>
                 </tbody>
             </table>
+
 
             <div className="action-buttons">
                 <button className="btn" onClick={handlePrint}>Print</button>

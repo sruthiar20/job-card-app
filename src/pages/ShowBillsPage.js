@@ -25,7 +25,7 @@ const ShowBillsPage = () => {
         };
 
         fetchInitials();
-        fetchBills(); // Initial unfiltered load
+        fetchBills();
     }, []);
 
     const fetchBills = async () => {
