@@ -27,6 +27,30 @@ const JobCardPage = () => {
     const [finalPay, setFinalPay] = useState(0);
     const [submitting, setSubmitting] = useState(false);
 
+    const [weeklyShiftData, setWeeklyShiftData] = useState([]);
+    const [selectedWeekStart, setSelectedWeekStart] = useState('');
+    const handleWeekStartChange = (e) => {
+        const start = new Date(e.target.value);
+        setSelectedWeekStart(e.target.value);
+
+        const week = [...Array(7)].map((_, i) => {
+            const date = new Date(start);
+            date.setDate(start.getDate() + i);
+            return {
+                date: date.toISOString().split('T')[0],
+                startTime: '',
+                endTime: ''
+            };
+        });
+
+        setWeeklyShiftData(week);
+    };
+
+    const updateShiftTime = (index, field, value) => {
+        const updated = [...weeklyShiftData];
+        updated[index][field] = value;
+        setWeeklyShiftData(updated);
+    };
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -44,6 +68,20 @@ const JobCardPage = () => {
         }
     }, [startTime, startMeridian, endTime, endMeridian, selectedDepartment]);
 
+    const computeHours = (startTime, endTime) => {
+        if (!startTime || !endTime) return 0;
+
+        const [startH, startM] = startTime.split(':').map(Number);
+        const [endH, endM] = endTime.split(':').map(Number);
+
+        let startMinutes = startH * 60 + startM;
+        let endMinutes = endH * 60 + endM;
+
+        let duration = endMinutes - startMinutes;
+        if (duration < 0) duration += 24 * 60; // handle overnight shift
+
+        return (duration / 60).toFixed(2);
+    };
 
     const handleDepartmentChange = async (department) => {
         setSelectedDepartment(department);
@@ -72,60 +110,47 @@ const JobCardPage = () => {
         setTotalHours(hours.toFixed(2));
         setShiftRate(rate.toFixed(2));
     };
-
-
-
     const handleSubmit = async () => {
         const worker = workers.find(worker => worker.name === selectedName);
         const workerId = worker ? worker.workerId : '';
+        const workerRate = worker ? worker.rate : 0;
 
         let jobCardData = [];
 
         if (selectedDepartment === 'Shift') {
-            const to24Hour = (time, meridian) => {
-                let [hour, min] = time.split(':').map(Number);
-                if (meridian === 'PM' && hour !== 12) hour += 12;
-                if (meridian === 'AM' && hour === 12) hour = 0;
-                return hour + min / 60;
-            };
+            const worker = workers.find(w => w.name === selectedName);
+            const workerId = worker?.workerId;
+            const workerRate = parseFloat(worker?.rate || 0);
 
-            const start = to24Hour(startTime, startMeridian);
-            const end = to24Hour(endTime, endMeridian);
-            let hours = end - start;
-            if (hours < 0) hours += 24;
+            const shiftCards = weeklyShiftData.map(day => {
+                const totalHours = computeHours(day.startTime, day.endTime);
+                const calculatedRate = parseFloat(((totalHours / 8) * workerRate).toFixed(2));
 
-            const ratePerShift = 300;
-            const rate = (hours / 8) * ratePerShift;
+                return {
+                    workerId,
+                    department: 'Shift',
+                    startTime: day.startTime,
+                    endTime: day.endTime,
+                    date: day.date,
+                    rate: workerRate,
+                    totalHours,
+                    calculatedRate,
+                    total: calculatedRate,
+                    advance: Number(advance),
+                    detectedAdvance: Number(detectedAdvance),
+                    advanceBalance: Number(advance) - Number(detectedAdvance),
+                    finalPay: calculatedRate - Number(detectedAdvance)
+                };
+            });
 
-            const total = rate;
-
-            const adv = Number(advance);
-            const det = Math.min(adv, total);
-            const bal = Math.max(0, adv - det);
-            const final = total - det;
-
-            jobCardData = [{
-                workerId,
-                department: selectedDepartment,
-                startTime,
-                endTime,
-                rate,
-                total,
-                advance: adv,
-                detectedAdvance: det,
-                advanceBalance: bal,
-                finalPay: final
-            }];
-        } else {
+            jobCardData = shiftCards;
+        }
+        else {
             jobCardData = styleEntries.map(style => {
                 const adv = Number(advance);
-                const rate = 0; // will be set in backend
-                const total = 0; // will be set in backend
-
-                const entryTotal = rate * style.quantity;
-                const det = Math.min(adv, entryTotal);
-                const bal = Math.max(0, adv - det);
-                const final = entryTotal - det;
+                const selectedStyle = styles.find(s => s.styleId === style.styleId);
+                const rate = selectedStyle ? Number(selectedStyle.rate) : 0;
+                const total = rate * style.quantity;
 
                 return {
                     workerId,
@@ -135,9 +160,9 @@ const JobCardPage = () => {
                     quantity: Number(style.quantity),
                     standard: style.standard,
                     advance: adv,
-                    detectedAdvance: det,
-                    advanceBalance: bal,
-                    finalPay: final
+                    detectedAdvance: Number(detectedAdvance),
+                    advanceBalance: adv - Number(detectedAdvance),
+                    finalPay: total - Number(detectedAdvance)
                 };
             });
         }
@@ -159,10 +184,10 @@ const JobCardPage = () => {
                     rate: card.rate
                 })),
                 netPay,
-                advance: payslip[0].advance,
-                detectedAdvance: payslip[0].detectedAdvance,
-                advanceBalance: payslip[0].advanceBalance,
-                finalPay: payslip[0].finalPay
+                advance: Number(advance),
+                detectedAdvance: Number(detectedAdvance),
+                advanceBalance: Number(advance) - Number(detectedAdvance),
+                finalPay: netPay - Number(detectedAdvance)
             };
 
             navigate('/payslip', { state: { payslip: formattedPayslip } });
@@ -199,34 +224,44 @@ const JobCardPage = () => {
                 </div>
             </div>
             {selectedDepartment === 'Shift' && (
-                <div className="shift-time-row">
+                <div className="weekly-shift-container">
                     <div className="input-container">
-                        <label>Start Time</label>
+                        <label>Select Week Start Date</label>
                         <input
-                            type="time"
-                            value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
+                            type="date"
+                            value={selectedWeekStart}
+                            onChange={handleWeekStartChange}
                         />
                     </div>
 
-                    <div className="input-container">
-                        <label>End Time</label>
-                        <input
-                            type="time"
-                            value={endTime}
-                            onChange={(e) => setEndTime(e.target.value)}
-                        />
+                    <div className="weekly-shift-table">
+                        <div className="shift-entry-header">
+                            <div>Date</div>
+                            <div>Start Time</div>
+                            <div>End Time</div>
+                        </div>
+
+                        {weeklyShiftData.map((day, index) => (
+                            <div key={index} className="shift-entry-row">
+                                <div>{day.date}</div>
+                                <div>
+                                    <input
+                                        type="time"
+                                        value={day.startTime}
+                                        onChange={(e) => updateShiftTime(index, 'startTime', e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <input
+                                        type="time"
+                                        value={day.endTime}
+                                        onChange={(e) => updateShiftTime(index, 'endTime', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        ))}
                     </div>
 
-                    <div className="input-container">
-                        <label>Total Hours</label>
-                        <input type="text" value={`${totalHours} hrs`} disabled/>
-                    </div>
-
-                    <div className="input-container">
-                        <label>Calculated Rate</label>
-                        <input type="text" value={`₹${shiftRate}`} disabled/>
-                    </div>
                 </div>
             )}
 
@@ -338,7 +373,10 @@ const JobCardPage = () => {
                     <input
                         type="number"
                         value={advance}
-                        onChange={(e) => setAdvance(e.target.value)}
+                        onChange={(e) => {
+                            setAdvance(e.target.value);
+                            setAdvanceBalance(Number(e.target.value) - Number(detectedAdvance));
+                        }}
                         placeholder="Enter advance"
                     />
                 </div>
@@ -347,8 +385,20 @@ const JobCardPage = () => {
                     <input
                         type="number"
                         value={detectedAdvance}
-                        onChange={(e) => setDetectedAdvance(e.target.value)}
+                        onChange={(e) => {
+                            setDetectedAdvance(e.target.value);
+                            setAdvanceBalance(Number(advance) - Number(e.target.value));
+                        }}
                         placeholder="Enter detected advance"
+                    />
+                </div>
+                <div className="input-container">
+                    <label>Available Balance (₹)</label>
+                    <input
+                        type="number"
+                        value={advanceBalance}
+                        readOnly
+                        placeholder="Available balance"
                     />
                 </div>
             </div>
