@@ -419,7 +419,7 @@ const JobCardPage = () => {
 
 
                 <button className="generate-slip-button" onClick={handleSubmit}>
-                    Generate Payslip
+                    Get Payslip
                 </button>
             </div>
         </div>

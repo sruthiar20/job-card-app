@@ -18,11 +18,11 @@
 .workers-table th,
 .workers-table td {
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid black;
 }
 
 .workers-table th {
-    background-color: #f4f4f4;
+    background-color: hsl(212, 33%, 31%);
 }
 
 .submit-button {
